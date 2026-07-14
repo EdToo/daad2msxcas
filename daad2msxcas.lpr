@@ -10,7 +10,7 @@ type
 
 var
   in_file,out_file,scr,sc2,mdg,auxText : string;
-  v,en,e,msx2    : Boolean;
+  v,en,e,msx2,bSCR,bSC2    : Boolean;
   y,diff    : Integer;
   textDatabaseLength, graphicDatabaseLength,graphicDatabaseStart,aux: Int16;
   basicAscii, textDatabase,screen,graphicDatabase,aux2,terpList,screenBlock,casFile,asciiBlock, loaderBlock,textDatabaseBlock,
@@ -417,6 +417,12 @@ begin
   end;
 end;
 
+procedure Error(S:String);
+begin
+ WriteLn('Error: ',S,'.');
+ halt(2);
+end;
+
 procedure ShowHelp;
 begin
   if en then
@@ -529,6 +535,51 @@ end;
 begin
 
   ParseArguments;
+  if scr <> '' then bSCR := true;  
+  if sc2 <> '' then bSC2 := true;
+  if bSCR and bSC2 then
+     if en then
+     error('Can not specify SCR and SC2 loading screens only one or other.')
+     else
+     error('No es posible especificar pantallas de carga exclusivas para SCR o SC2; solo se puede elegir una u otra.');
+
+  //Check for valid files
+  if not FileExists(in_file) then
+     if en then
+     error('DDB file not found.')
+     else
+     error('No se encontró el archivo DDB.');
+                                                                                                               
+  //Check for valid files
+  if bSCR then
+     if not FileExists(scr) then
+        if en then
+           error('SCR file not found.')
+        else
+           error('No se encontró el archivo SCR.');
+                                                                                                
+  //Check for valid files
+  if bSC2 then
+     if not FileExists(sc2) then
+        if en then
+           error('SC2 file not found.')
+        else
+           error('No se encontró el archivo SC2.');
+
+  //Check for valid files
+  if MDG <> '' then
+     if not FileExists(sc2) then
+        if en then
+           error('MDG file not found.')
+        else
+           error('No se encontró el archivo MDG.');
+
+  //Check for valid files
+  if not FileExists(in_file) then
+     if en then
+     error('DDB file not found')
+     else
+     error('No es posible especificar pantallas de carga exclusivas para SCR o SC2; solo se puede elegir una u otra.');
   SetConsoleOutputCP(CP_UTF8);
 
   WriteLn;
@@ -561,7 +612,7 @@ if MSX2 then
 
 
 
-if sc2<>'' then
+if bSC2 then
   basicAscii := StringToBytes(
     '10 COLOR 15,1,1:SCREEN 2:BLOAD"cas:",R:BLOAD"cas:",R')
 else
@@ -572,10 +623,10 @@ else
 textDatabase := ReadFileBytes(in_file);
 
 
-if scr <> '' then
+if bSCR then
   screen := ReadFileBytes(scr)
 else
-if sc2 <> '' then
+if bSC2 then
 begin
   screen := ReadFileBytes(sc2);
 
@@ -614,7 +665,7 @@ begin
 
   if Length(screen) > 0 then
   begin
-    if scr<>'' then
+    if bSCR then
       WriteLn('SCR loading screen')
     else
       WriteLn('SC2 loading screen');
@@ -626,14 +677,14 @@ begin
 
   WriteLn('-DDB:');
   WriteLn('Start: 0x100');
-  WriteLn('Finish: ', IntToHex(textDatabaseLength+$100-1,2));
-  WriteLn('Length: ', IntToHex(textDatabaseLength,2));
+  WriteLn('Finish: 0x', IntToHex(textDatabaseLength+$100-1,4));
+  WriteLn('Length: 0x', IntToHex(textDatabaseLength,4));
   WriteLn;
 
   WriteLn('-MDG:');
-  WriteLn('Start: ', IntToHex(graphicDatabaseStart,2));
+  WriteLn('Start: 0x', IntToHex(graphicDatabaseStart,4));
   WriteLn('Finish: 0xAFFF');
-  WriteLn('Length: ', IntToHex(graphicDatabaseLength,2));
+  WriteLn('Length: 0x', IntToHex(graphicDatabaseLength,4));
   WriteLn;
 
   WriteLn('Interpreter:');
@@ -651,14 +702,14 @@ begin
   //if e then
     //aux := aux + 151;
 
-  WriteLn('Finish: ', IntToHex($B000+aux,4));
+  WriteLn('Finish: 0x', IntToHex($B000+aux,4));
 
   aux := Length(terpList);
 
   if e then
     aux := aux-151;
 
-  WriteLn('Length: ', IntToHex(aux,4));
+  WriteLn('Length: 0x', IntToHex(aux,4));
 
   WriteLn;
 
@@ -679,14 +730,14 @@ begin
 
   WriteLn('-DDB:');
   WriteLn('Comienzo: 0x100');
-  WriteLn('Fin: ', IntToHex(textDatabaseLength+$100-1,2));
-  WriteLn('Longitud: ', IntToHex(textDatabaseLength,2));
+  WriteLn('Fin: 0x', IntToHex(textDatabaseLength+$100-1,4));
+  WriteLn('Longitud: 0x', IntToHex(textDatabaseLength,4));
   WriteLn;
 
   WriteLn('-MDG:');
-  WriteLn('Comienzo: ', IntToHex(graphicDatabaseStart,2));
+  WriteLn('Comienzo: 0x', IntToHex(graphicDatabaseStart,4));
   WriteLn('Fin: 0xAFFF');
-  WriteLn('Longitud: ', IntToHex(graphicDatabaseLength,2));
+  WriteLn('Longitud: 0x', IntToHex(graphicDatabaseLength,4));
   WriteLn;
 
   WriteLn('Intérprete:');
@@ -704,14 +755,14 @@ begin
   //if e then
     //aux := aux + 151;
 
-  WriteLn('Fin: ', IntToHex($B000+aux,4));
+  WriteLn('Fin: 0x', IntToHex($B000+aux,4));
 
   aux := Length(terpList);
 
   if e then
     aux := aux-151;
 
-  WriteLn('Longitud: ', IntToHex(aux,4));
+  WriteLn('Longitud: 0x', IntToHex(aux,4));
 
   WriteLn;
 
@@ -734,7 +785,7 @@ loaderList[$43] := Lo(graphicDatabaseLength);
 loaderList[$44] := Hi(graphicDatabaseLength);
 
 
-if scr ='' then
+if bSCR then
 begin
   for y := $20 to $33 do
     loaderList[y] := 0;
@@ -817,7 +868,7 @@ if Length(screenBlock)=0 then
 else
 begin
 
-  if scr <>'' then casFile := ConcatBytes([
+  if bSCR then casFile := ConcatBytes([
       asciiBlock,
       loaderBlock,
       screenBlock,
