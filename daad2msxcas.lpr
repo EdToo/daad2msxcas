@@ -568,7 +568,7 @@ begin
 
   //Check for valid files
   if MDG <> '' then
-     if not FileExists(sc2) then
+     if not FileExists(mdg) then
         if en then
            error('MDG file not found.')
         else
