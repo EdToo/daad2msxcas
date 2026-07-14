@@ -1,5 +1,5 @@
 # daad2msxcas
-Below is Pedro's instructions for his original python version available here <a>https://github.com/rockersuke/daad2msxcas</a>. All right belong to Pedro, this is only a 1 to 1 conversion for my use case.
+Below is Pedro's instructions for his original python version available here <a>https://github.com/rockersuke/daad2msxcas</a>. All rights belong to Pedro, this is only a 1 to 1 conversion for my use case.
 
 <h1>Daad2MsxCas</h1>
 
