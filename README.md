@@ -95,4 +95,4 @@ Replaced IM 2 with IM 1 in english terp. Now english games don't crash in MSX2. 
 
 Pascal Notes
 
-Added parameter -en to display output in English. Removed the IM 2/IM 1 fix as games froze on MSX 1 with the English interpreter.
+Added parameter -eng to display output in English. Added -EN to work with DAAD Ready toolchain. Removed the IM 2/IM 1 fix as games froze on MSX 1 with the English interpreter.
