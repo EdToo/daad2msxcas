@@ -10,7 +10,7 @@ type
 
 var
   in_file,out_file,scr,sc2,mdg,auxText : string;
-  v,en,e,msx2,bSCR,bSC2    : Boolean;
+  v,eng,e,msx2,bSCR,bSC2    : Boolean;
   y,diff    : Integer;
   textDatabaseLength, graphicDatabaseLength,graphicDatabaseStart,aux: Int16;
   basicAscii, textDatabase,screen,graphicDatabase,aux2,terpList,screenBlock,casFile,asciiBlock, loaderBlock,textDatabaseBlock,
@@ -425,7 +425,7 @@ end;
 
 procedure ShowHelp;
 begin
-  if en then
+  if eng then
     begin
          WriteLn('Create a MSX .cas file for DAAD Adventures.');
          WriteLn;
@@ -448,6 +448,7 @@ begin
 
   v := False;
   e := False;
+  eng := false;
 
   scr := '';
   sc2 := '';
@@ -474,11 +475,17 @@ begin
     if p = '-msx2' then
       MSX2 := True
     else
-    if p = '-en' then
-      en := True
+    if p = '-eng' then
+      eng := True
     else
     if p = '-e' then
       e := True
+    else  
+    if p = '-EN' then
+      e := True
+    else
+    if p = '-ES' then
+      e := False
     else
     if p = '-scr' then
     begin
@@ -535,51 +542,51 @@ end;
 begin
 
   ParseArguments;
-  if scr <> '' then bSCR := true;  
-  if sc2 <> '' then bSC2 := true;
-  if bSCR and bSC2 then
-     if en then
-     error('Can not specify SCR and SC2 loading screens only one or other.')
-     else
-     error('No es posible especificar pantallas de carga exclusivas para SCR o SC2; solo se puede elegir una u otra.');
+if scr <> '' then bSCR := true;
+if sc2 <> '' then bSC2 := true;
+if bSCR and bSC2 then
+   if eng then
+   error('Can not specify SCR and SC2 loading screens only one or other.')
+   else
+   error('No es posible especificar pantallas de carga exclusivas para SCR o SC2; solo se puede elegir una u otra.');
 
-  //Check for valid files
-  if not FileExists(in_file) then
-     if en then
-     error('DDB file not found.')
-     else
-     error('No se encontró el archivo DDB.');
-                                                                                                               
-  //Check for valid files
-  if bSCR then
-     if not FileExists(scr) then
-        if en then
-           error('SCR file not found.')
-        else
-           error('No se encontró el archivo SCR.');
-                                                                                                
-  //Check for valid files
-  if bSC2 then
-     if not FileExists(sc2) then
-        if en then
-           error('SC2 file not found.')
-        else
-           error('No se encontró el archivo SC2.');
+//Check for valid files
+if not FileExists(in_file) then
+   if eng then
+   error('DDB file not found.')
+   else
+   error('No se encontró el archivo DDB.');
 
-  //Check for valid files
-  if MDG <> '' then
-     if not FileExists(mdg) then
-        if en then
-           error('MDG file not found.')
-        else
-           error('No se encontró el archivo MDG.');
+//Check for valid files
+if bSCR then
+   if not FileExists(scr) then
+      if eng then
+         error('SCR file not found.')
+      else
+         error('No se encontró el archivo SCR.');
 
-  //Check for valid files
-  if not FileExists(in_file) then
-     if en then
-     error('DDB file not found')
-     else
-     error('No es posible especificar pantallas de carga exclusivas para SCR o SC2; solo se puede elegir una u otra.');
+//Check for valid files
+if bSC2 then
+   if not FileExists(sc2) then
+      if eng then
+         error('SC2 file not found.')
+      else
+         error('No se encontró el archivo SC2.');
+
+//Check for valid files
+if MDG <> '' then
+   if not FileExists(mdg) then
+      if eng then
+         error('MDG file not found.')
+      else
+         error('No se encontró el archivo MDG.');
+
+//Check for valid files
+if not FileExists(in_file) then
+   if eng then
+   error('DDB file not found')
+   else
+   error('No es posible especificar pantallas de carga exclusivas para SCR o SC2; solo se puede elegir una u otra.');
   SetConsoleOutputCP(CP_UTF8);
 
   WriteLn;
@@ -612,7 +619,7 @@ if MSX2 then
 
 
 
-if bSC2 then
+if sc2<>'' then
   basicAscii := StringToBytes(
     '10 COLOR 15,1,1:SCREEN 2:BLOAD"cas:",R:BLOAD"cas:",R')
 else
@@ -623,10 +630,10 @@ else
 textDatabase := ReadFileBytes(in_file);
 
 
-if bSCR then
+if scr <> '' then
   screen := ReadFileBytes(scr)
 else
-if bSC2 then
+if sc2 <> '' then
 begin
   screen := ReadFileBytes(sc2);
 
@@ -660,12 +667,12 @@ else
   terpList := sTerpList;
 
 
-if v and en then
+if v and eng then
 begin
 
   if Length(screen) > 0 then
   begin
-    if bSCR then
+    if scr<>'' then
       WriteLn('SCR loading screen')
     else
       WriteLn('SC2 loading screen');
@@ -675,13 +682,13 @@ begin
 
   WriteLn;
 
-  WriteLn('-DDB:');
+  WriteLn('-DDB:  ',in_file);
   WriteLn('Start: 0x100');
   WriteLn('Finish: 0x', IntToHex(textDatabaseLength+$100-1,4));
   WriteLn('Length: 0x', IntToHex(textDatabaseLength,4));
   WriteLn;
 
-  WriteLn('-MDG:');
+  WriteLn('-MDG:   ',mdg);
   WriteLn('Start: 0x', IntToHex(graphicDatabaseStart,4));
   WriteLn('Finish: 0xAFFF');
   WriteLn('Length: 0x', IntToHex(graphicDatabaseLength,4));
@@ -714,7 +721,7 @@ begin
   WriteLn;
 
 end
-else
+else if v then
 begin
   if Length(screen) > 0 then
   begin
@@ -785,7 +792,7 @@ loaderList[$43] := Lo(graphicDatabaseLength);
 loaderList[$44] := Hi(graphicDatabaseLength);
 
 
-if bSCR then
+if scr ='' then
 begin
   for y := $20 to $33 do
     loaderList[y] := 0;
@@ -868,7 +875,7 @@ if Length(screenBlock)=0 then
 else
 begin
 
-  if bSCR then casFile := ConcatBytes([
+  if scr <>'' then casFile := ConcatBytes([
       asciiBlock,
       loaderBlock,
       screenBlock,
@@ -890,10 +897,10 @@ end;
 
 WriteFileBytes(out_file, casFile);
 
-if en then
+if eng then
 WriteLn('File ', out_file, ' created.')
 else
 WriteLn('Fichero ', out_file, ' creado.');
 WriteLn;
 
-end.
+end.                                                                                                            
